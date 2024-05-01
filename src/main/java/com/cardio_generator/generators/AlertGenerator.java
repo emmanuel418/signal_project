@@ -6,12 +6,13 @@ import com.cardio_generator.outputs.OutputStrategy;
 
 public class AlertGenerator implements PatientDataGenerator {
 
-    //Constant names use UPPER_SNAKE_CASE
+    //Constant names use UPPER_SNAKE_CASE- changed randomGenerator to RANDOM_GENERATOR.
     public static final Random RANDOM_GENERATOR = new Random();
-    private boolean[] alertStates;
-    /* false = resolved, true = pressed
-    // local variable names(static or otherwise) should be lowerCamelCase
-     */
+    // local variable names(static or otherwise) should be lowerCamelCase- changed AlertStates to alertStates.
+    public boolean[] alertStates;
+    // false = resolved, true = pressed
+
+
     public AlertGenerator(int patientCount) {
         alertStates = new boolean[patientCount+1];
     }
@@ -27,8 +28,10 @@ public class AlertGenerator implements PatientDataGenerator {
                 }
             } else {
                 double lambda = 0.1;
-                // local variable names(static or otherwise) should be lowerCamelCase
-                // Average rate (alerts per period), adjust based on desired frequency
+                /*
+                 local variable names(static or otherwise) should be lowerCamelCase- changed Lambda to lambda
+                 Average rate (alerts per period), adjust based on desired frequency
+                */
                 double p = -Math.expm1(-lambda); // Probability of at least one alert in the period
                 boolean alertTriggered = RANDOM_GENERATOR.nextDouble() < p;
 
