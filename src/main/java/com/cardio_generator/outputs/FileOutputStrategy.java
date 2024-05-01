@@ -40,7 +40,7 @@ public class FileOutputStrategy implements OutputStrategy {
      * @param patientId The ID of the patient.
      * @param timestamp The timestamp of the cardio reading.
      * @param label     The label associated with the cardio reading.
-     * @param data      The data of the cardio reading.
+     * @param data      The data of the cardio reading .
      */
     @Override
     public void output(int patientId, long timestamp, String label, String data) {
