@@ -2,51 +2,73 @@ package com.alerts;
 
 import com.data_management.DataStorage;
 import com.data_management.Patient;
+import com.data_management.PatientRecord;
 
-/**
- * The {@code AlertGenerator} class is responsible for monitoring patient data
- * and generating alerts when certain predefined conditions are met. This class
- * relies on a {@link DataStorage} instance to access patient data and evaluate
- * it against specific health criteria.
- */
+import java.util.List;
+
 public class AlertGenerator {
     private DataStorage dataStorage;
 
-    /**
-     * Constructs an {@code AlertGenerator} with a specified {@code DataStorage}.
-     * The {@code DataStorage} is used to retrieve patient data that this class
-     * will monitor and evaluate.
-     *
-     * @param dataStorage the data storage system that provides access to patient
-     *                    data
-     */
     public AlertGenerator(DataStorage dataStorage) {
         this.dataStorage = dataStorage;
     }
 
-    /**
-     * Evaluates the specified patient's data to determine if any alert conditions
-     * are met. If a condition is met, an alert is triggered via the
-     * {@link #triggerAlert}
-     * method. This method should define the specific conditions under which an
-     * alert
-     * will be triggered.
-     *
-     * @param patient the patient data to evaluate for alert conditions
-     */
     public void evaluateData(Patient patient) {
-        // Implementation goes here
+        List<PatientRecord> records = patient.getRecords(Long.MIN_VALUE, Long.MAX_VALUE);
+        for (int i = 0; i < records.size(); i++) {
+            PatientRecord record = records.get(i);
+
+            // Blood Pressure Critical Threshold Alert
+            if (record.getRecordType().equals("BloodPressure")) {
+                double systolic = record.getMeasurementValue();
+                if (systolic > 180 || systolic < 90) {
+                    triggerAlert(new Alert(Integer.toString(record.getPatientId()), "Critical Blood Pressure", record.getTimestamp()));
+                }
+            }
+
+            // Blood Oxygen Saturation Alert
+            if (record.getRecordType().equals("BloodOxygen")) {
+                double oxygenSaturation = record.getMeasurementValue();
+                if (oxygenSaturation < 92) {
+                    triggerAlert(new Alert(Integer.toString(record.getPatientId()), "Low Blood Oxygen Saturation", record.getTimestamp()));
+                }
+            }
+
+            // Combined Alert: Hypotensive Hypoxemia Alert
+            if (record.getRecordType().equals("BloodPressure") && record.getMeasurementValue() < 90) {
+                for (PatientRecord oxygenRecord : records) {
+                    if (oxygenRecord.getRecordType().equals("BloodOxygen") && oxygenRecord.getMeasurementValue() < 92) {
+                        triggerAlert(new Alert(Integer.toString(record.getPatientId()), "Hypotensive Hypoxemia", record.getTimestamp()));
+                    }
+                }
+            }
+
+            // ECG Data Alerts
+            if (record.getRecordType().equals("ECG")) {
+                double average = calculateAverage(records, i, 5);
+                if (Math.abs(record.getMeasurementValue() - average) > 1.5) { // example threshold
+                    triggerAlert(new Alert(Integer.toString(record.getPatientId()), "Abnormal ECG Data", record.getTimestamp()));
+                }
+            }
+        }
     }
 
-    /**
-     * Triggers an alert for the monitoring system. This method can be extended to
-     * notify medical staff, log the alert, or perform other actions. The method
-     * currently assumes that the alert information is fully formed when passed as
-     * an argument.
-     *
-     * @param alert the alert object containing details about the alert condition
-     */
+    private double calculateAverage(List<PatientRecord> records, int currentIndex, int windowSize) {
+        int start = Math.max(0, currentIndex - windowSize + 1);
+        int end = currentIndex + 1;
+        double sum = 0;
+        int count = 0;
+        for (int i = start; i < end; i++) {
+            if (records.get(i).getRecordType().equals("ECG")) {
+                sum += records.get(i).getMeasurementValue();
+                count++;
+            }
+        }
+        return count > 0 ? sum / count : 0;
+    }
+
     private void triggerAlert(Alert alert) {
-        // Implementation might involve logging the alert or notifying staff
+        // This method can be extended to notify medical staff, log the alert, or perform other actions
+        System.out.println("Alert Triggered: " + alert.getCondition() + " for Patient ID: " + alert.getPatientId() + " at " + alert.getTimestamp());
     }
 }

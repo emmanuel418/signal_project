@@ -1,49 +1,66 @@
-package com.cardio_generator.generators;
+/**
+package com.alerts;
 
-import java.util.Random;
+import com.data_management.DataStorage;
+import com.data_management.PatientRecord;
 
-import com.cardio_generator.outputs.OutputStrategy;
+import java.util.ArrayList;
+import java.util.List;
 
-public class AlertGenerator implements PatientDataGenerator {
+public class AlertGenerator {
+    private List<Alert> alerts;
 
-    //Constant names use UPPER_SNAKE_CASE- changed randomGenerator to RANDOM_GENERATOR.
-    public static final Random RANDOM_GENERATOR = new Random();
-    // local variable names(static or otherwise) should be lowerCamelCase- changed AlertStates to alertStates.
-    public boolean[] alertStates;
-    // false = resolved, true = pressed
-
-
-    public AlertGenerator(int patientCount) {
-        alertStates = new boolean[patientCount+1];
+    public AlertGenerator() {
+        this.alerts = new ArrayList<>();
     }
 
-    @Override
-    public void generate(int patientId, OutputStrategy outputStrategy) {
-        try {
-            if (alertStates[patientId]) {
-                if (RANDOM_GENERATOR.nextDouble() < 0.9) { // 90% chance to resolve
-                    alertStates[patientId] = false;
-                    // Output the alert
-                    outputStrategy.output(patientId, System.currentTimeMillis(), "Alert", "resolved");
-                }
-            } else {
-                double lambda = 0.1;
-                /*
-                 local variable names(static or otherwise) should be lowerCamelCase- changed Lambda to lambda
-                 Average rate (alerts per period), adjust based on desired frequency
-                */
-                double p = -Math.expm1(-lambda); // Probability of at least one alert in the period
-                boolean alertTriggered = RANDOM_GENERATOR.nextDouble() < p;
+    public void evaluateData(DataStorage dataStorage) {
+        // Iterate through patient records and check for alert conditions
+        List<PatientRecord> records = dataStorage.getAllRecords();
+        for (int i = 0; i < records.size(); i++) {
+            PatientRecord record = records.get(i);
 
-                if (alertTriggered) {
-                    alertStates[patientId] = true;
-                    // Output the alert
-                    outputStrategy.output(patientId, System.currentTimeMillis(), "Alert", "triggered");
-                }
+            // Critical Threshold Alert
+            if (record.getSystolicBloodPressure() > 180 || record.getSystolicBloodPressure() < 90 ||
+                    record.getDiastolicBloodPressure() > 120 || record.getDiastolicBloodPressure() < 60) {
+                triggerAlert(new Alert("Critical Blood Pressure", record));
             }
-        } catch (Exception e) {
-            System.err.println("An error occurred while generating alert data for patient " + patientId);
-            e.printStackTrace();
+
+            // Blood Saturation Data Alerts
+            if (record.getBloodOxygenSaturation() < 92) {
+                triggerAlert(new Alert("Low Blood Oxygen Saturation", record));
+            }
+
+            // Combined Alert: Hypotensive Hypoxemia Alert
+            if (record.getSystolicBloodPressure() < 90 && record.getBloodOxygenSaturation() < 92) {
+                triggerAlert(new Alert("Hypotensive Hypoxemia", record));
+            }
+
+            // ECG Data Alerts
+            double average = calculateAverage(records, i, 5);
+            if (Math.abs(record.getECG() - average) > threshold) { // assume threshold is predefined
+                triggerAlert(new Alert("Abnormal ECG Data", record));
+            }
         }
     }
+
+    private double calculateAverage(List<PatientRecord> records, int currentIndex, int windowSize) {
+        int start = Math.max(0, currentIndex - windowSize + 1);
+        int end = currentIndex + 1;
+        double sum = 0;
+        for (int i = start; i < end; i++) {
+            sum += records.get(i).getECG();
+        }
+        return sum / (end - start);
+    }
+
+    private void triggerAlert(Alert alert) {
+        alerts.add(alert);
+        // Additional logic to manage alerts (e.g., notify stakeholders)
+    }
+
+    public List<Alert> getAlerts() {
+        return alerts;
+    }
 }
+**/
