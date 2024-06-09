@@ -66,3 +66,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Project Members
 - Student ID: i6360489
 - Student ID: i6326729
+
+## UML MODELS
+
+the following is the link to the uml-models for week 2
+
+https://github.com/emmanuel418/signal_project/tree/master/uml_models
